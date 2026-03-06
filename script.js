@@ -330,3 +330,14 @@ document.addEventListener('touchmove', (e) => {
     // 立即执行一次
     setTimeout(adjustBackBtn, 100);
 })();
+
+function fixFullHeight() {
+    if (window.visualViewport) {
+        // 假设你的主容器类名是 .iphone-screen
+        const screen = document.querySelector('.iphone-screen');
+        if (screen) screen.style.height = `${window.visualViewport.height}px`;
+    }
+}
+window.visualViewport.addEventListener('resize', fixFullHeight);
+window.visualViewport.addEventListener('scroll', (e) => e.preventDefault());
+fixFullHeight(); // 初始化执行一次
