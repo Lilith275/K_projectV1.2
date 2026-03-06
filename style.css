@@ -755,3 +755,34 @@ html, body {
     background: transparent !important;
     visibility: hidden; /* 默认不可见，直到加载完成 [cite: 147] */
 }
+
+/* 强制覆盖适配补丁 */
+:root {
+    --vh: 100vh; /* 默认值 */
+}
+
+html, body {
+    height: var(--vh) !important;
+    overflow: hidden !important;
+    position: fixed !important; /* 关键：禁止页面被拖动导致的黑边 */
+    width: 100% !important;
+    background-color: #000 !important; /* 背景底层设为黑色，防止白屏闪烁 */
+}
+
+.iphone-screen, #app-overlay {
+    height: var(--vh) !important;
+    top: 0 !important;
+    margin: 0 !important;
+}
+
+#app-frame {
+    background-color: transparent !important; /* 允许看到底层颜色 */
+    height: 100% !important;
+    will-change: opacity; /* 硬件加速 */
+}
+
+/* 隐藏 iOS 橡皮筋回弹黑影 */
+#app-overlay {
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: auto;
+}
