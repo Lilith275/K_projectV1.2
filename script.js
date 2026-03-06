@@ -390,3 +390,48 @@ fixFullHeight(); // 初始化执行一次
     window.addEventListener('load', forceFixHeight); // [cite: 57]
     forceFixHeight();
 })();
+
+/* 针对“添加到主屏幕”全屏模式的专用补丁 */
+(function() {
+    // 强制修正 iOS 这里的视口高度偏差
+    const resetViewport = () => {
+        const actualHeight = window.innerHeight;
+        document.documentElement.style.setProperty('--vh', `${actualHeight}px`);
+        document.body.style.height = actualHeight + 'px';
+        // 强制所有全屏容器对齐实际高度
+        document.querySelectorAll('.iphone-screen, #app-overlay').forEach(el => {
+            el.style.height = actualHeight + 'px';
+        });
+    };
+
+    // 拦截 iframe 加载过程，消除闪黑
+    const fixIframeFlash = () => {
+        const frame = document.getElementById('app-frame');
+        if (!frame) return;
+
+        // 初始状态设为不可见但占位
+        frame.style.opacity = '0';
+        frame.style.transition = 'none';
+
+        // 监听加载开始
+        const originalLaunch = window.launchApp;
+        window.launchApp = function(url) {
+            frame.style.opacity = '0'; // 切换瞬间立即隐身
+            if(originalLaunch) originalLaunch(url);
+            
+            // 只有当 iframe 真正 load 完成后才渐显
+            frame.onload = function() {
+                setTimeout(() => {
+                    frame.style.transition = 'opacity 0.3s ease-in-out';
+                    frame.style.opacity = '1';
+                }, 50); // 给 50ms 缓冲让渲染引擎准备好
+            };
+        };
+    };
+
+    // 执行
+    window.addEventListener('resize', resetViewport);
+    window.addEventListener('orientationchange', () => setTimeout(resetViewport, 300));
+    resetViewport();
+    fixIframeFlash();
+})();
