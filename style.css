@@ -15,6 +15,7 @@
 body, html {
     width: 100vw !important; 
     height: 100vh;
+    height: 100dvh;
     margin: 0; 
     padding: 0;
     overflow: hidden; 
@@ -23,6 +24,12 @@ body, html {
     left: 0;
     touch-action: pan-y; /* 只允许纵向滚动，禁止横向手势 */
     overscroll-behavior-x: none; /* 禁用横向越界滚动效果 */
+    /* 【补丁 A】强制拉伸背景，确保覆盖刘海和底部 */
+    background-attachment: fixed;
+    background-size: 100% 100vh; /* 强制背景图至少撑满 100 视口高度 */
+    
+    /* 【补丁 B】针对 iOS 的特殊填充 */
+    min-height: -webkit-fill-available;
 
     /* --- 桌面默认壁纸设置 --- */
 /* 修正后的唯一路径：去掉多余的点，合并蒙版 */
@@ -35,6 +42,8 @@ body, html {
 }
 /* 全覆盖锁屏：高级感毛玻璃 + 呼吸灯提示 */
 #lock-screen {
+    height: 100vh; /* 兼容旧手机 */
+    height: 100dvh; /* 自动适配包含/不包含工具栏的高度 */
     position: fixed;
     top: 0; 
     left: 0; 
@@ -267,7 +276,12 @@ body, html {
    2. 主桌面与布局核心修改区域
    ============================ */
 .iphone-screen {
-    position: relative;
+    height: 100dvh !important;
+    position: absolute; /* 在 fixed 的 body 里用 absolute */
+    background-size: cover !important;
+    background-attachment: scroll; /* 修复 iOS 上 fixed 背景的性能问题 */
+    top: 0;
+    left: 0;
     width: 100%; 
     height: 100%;
     
@@ -277,6 +291,7 @@ body, html {
     display: flex; 
     flex-direction: column;
     z-index: 100; 
+    padding-bottom: var(--safe-bottom);
 }
 .status-bar {
     height: 44px;
@@ -410,6 +425,7 @@ padding: 10px
 /* 底部 Dock 保持不变 */
 .dock {
 margin: 0 15px calc(8px + var(--safe-bottom)); /* 减小底部间距 */
+margin-bottom: calc(max(15px, var(--safe-bottom)) + 5px);
     height: 70px;      /* 从 75px 缩小到 70px */
     background: rgba(255, 255, 255, 0.1); 
     border-radius: 22px;
