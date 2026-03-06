@@ -15,21 +15,10 @@
 body, html {
     width: 100vw !important; 
     height: 100vh;
-    height: 100dvh;
     margin: 0; 
     padding: 0;
     overflow: hidden; 
-    position: fixed; /* 强力锁定防止整体偏移 */
-    top: 0;
-    left: 0;
-    touch-action: pan-y; /* 只允许纵向滚动，禁止横向手势 */
-    overscroll-behavior-x: none; /* 禁用横向越界滚动效果 */
-    /* 【补丁 A】强制拉伸背景，确保覆盖刘海和底部 */
-    background-attachment: fixed;
-    background-size: 100% 100vh; /* 强制背景图至少撑满 100 视口高度 */
     
-    /* 【补丁 B】针对 iOS 的特殊填充 */
-    min-height: -webkit-fill-available;
 
     /* --- 桌面默认壁纸设置 --- */
 /* 修正后的唯一路径：去掉多余的点，合并蒙版 */
@@ -42,15 +31,11 @@ body, html {
 }
 /* 全覆盖锁屏：高级感毛玻璃 + 呼吸灯提示 */
 #lock-screen {
-    height: 100vh; /* 兼容旧手机 */
-    height: 100dvh; /* 自动适配包含/不包含工具栏的高度 */
     position: fixed;
     top: 0; 
     left: 0; 
     width: 100vw; 
     height: 100vh;
-    height: 100dvh; /* 动态适配高度 */
-    min-height: -webkit-fill-available;
     
     /* 锁屏壁纸：确保 sp.jpg 文件存在 */
     background-image: url('assetsUI/sp.jpg'); 
@@ -104,7 +89,7 @@ body, html {
 /* 解锁文字：添加呼吸灯动画 */
 .unlock-text { 
     color: #ffffff; 
-    font-size: 20px;
+    font-size: 30px;
     letter-spacing: 4px; 
     font-weight: 200; /* 极细字体更高级 */
      text-shadow: 0 0 20px rgb(255, 125, 145);
@@ -258,9 +243,8 @@ body, html {
 /* App 容器层级 */
 #app-overlay {
     position: fixed;
-    height: 100dvh;
     top: 0; left: 0; width: 100%; height: 100%;
-    background-color: #ffffff; /* 或者你想要的颜色 */
+    background: #000;
     z-index: 10000; 
     transform: translateY(100%);
     transition: transform 0.4s cubic-bezier(0.33, 1, 0.68, 1);
@@ -269,19 +253,13 @@ body, html {
 #app-overlay.open { 
     transform: translateY(0); 
     pointer-events: auto; 
-    padding-bottom: var(--safe-bottom); /* 确保 App 里的按钮不被横条挡住 */
 }
 
 /* ============================
    2. 主桌面与布局核心修改区域
    ============================ */
 .iphone-screen {
-    height: 100dvh !important;
-    position: absolute; /* 在 fixed 的 body 里用 absolute */
-    background-size: cover !important;
-    background-attachment: scroll; /* 修复 iOS 上 fixed 背景的性能问题 */
-    top: 0;
-    left: 0;
+    position: relative;
     width: 100%; 
     height: 100%;
     
@@ -291,7 +269,6 @@ body, html {
     display: flex; 
     flex-direction: column;
     z-index: 100; 
-    padding-bottom: var(--safe-bottom);
 }
 .status-bar {
     height: 44px;
@@ -425,7 +402,6 @@ padding: 10px
 /* 底部 Dock 保持不变 */
 .dock {
 margin: 0 15px calc(8px + var(--safe-bottom)); /* 减小底部间距 */
-margin-bottom: calc(max(15px, var(--safe-bottom)) + 5px);
     height: 70px;      /* 从 75px 缩小到 70px */
     background: rgba(255, 255, 255, 0.1); 
     border-radius: 22px;
@@ -435,9 +411,7 @@ margin-bottom: calc(max(15px, var(--safe-bottom)) + 5px);
     backdrop-filter: blur(10px); 
     -webkit-backdrop-filter: blur(10px);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    bottom: 0;
     border: 1px solid rgba(255, 255, 255, 0.1); 
-    position: relative;
 }
 .icon-img-small {
     width: 44px;       /* 从 48px 缩小到 44px */
@@ -668,7 +642,7 @@ margin-bottom: calc(max(15px, var(--safe-bottom)) + 5px);
 
 /* 签名：增加溢出隐藏，防止文字过长撑乱布局 */
 .profile-signature {
-    font-size: 8px;
+    font-size: 12px;
     color: rgba(255, 159, 175, 0.938);
     margin-top: 10px;
     font-style: italic;
@@ -731,49 +705,4 @@ margin-bottom: calc(max(15px, var(--safe-bottom)) + 5px);
     color: #ffdede; /* 基准色设为白色 */
     text-shadow: 0 0 5px rgba(255, 182, 193, 0.6);
     mix-blend-mode: difference; 
-}
-/* 强制补丁：锁死视口高度 */
-html, body {
-    height: 100dvh !important; /* 动态适配有无工具栏的高度 [cite: 108, 110] */
-    width: 100vw !important;
-    position: fixed !important; /* 彻底防止 iOS 的橡皮筋回弹 [cite: 103, 104] */
-    overflow: hidden !important;
-}
-
-.iphone-screen {
-    height: 100dvh !important; /* 确保桌面背景占满全屏 [cite: 154, 155] */
-    min-height: -webkit-fill-available; /* 苹果专用的全屏填充 [cite: 106, 110] */
-}
-
-/* 解决闪黑补丁：为 App 容器预设底色 */
-#app-overlay {
-    background-color: #000 !important; /* 无论如何，底色先设为黑，防止闪白 [cite: 151] */
-    transition: transform 0.4s cubic-bezier(0.33, 1, 0.68, 1) !important; /* 缩短过渡时间减少感知卡顿  */
-}
-
-#app-frame {
-    background: transparent !important;
-    visibility: hidden; /* 默认不可见，直到加载完成 [cite: 147] */
-}
-
-/* 手机端黑屏救急补丁 */
-#app-overlay {
-    background-color: #1a1a1a !important; /* 强制给个底色，不要透明 */
-    display: block !important;
-    visibility: visible !important;
-}
-
-#app-frame {
-    display: block !important;
-    width: 100% !important;
-    height: 100% !important;
-    background: #fff !important; /* 强制给 iframe 一个白色底，看看能不能出画面 */
-    /* 解决 iOS 下 iframe 不显示内容的 Bug */
-    -webkit-overflow-scrolling: touch !important;
-}
-
-/* 确保主屏幕不会挡住 App 层 */
-#app-overlay.open {
-    z-index: 2000000 !important; 
-    transform: translateY(0) !important;
 }
