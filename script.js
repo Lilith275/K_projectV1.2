@@ -317,16 +317,3 @@ document.addEventListener('touchmove', (e) => {
             }
         }
     };
-
-    // 初始化执行
-    window.addEventListener('load', adjustBackBtn);
-    // 窗口大小改变（如旋转或全屏切换）时重新计算
-    window.addEventListener('resize', adjustBackBtn);
-    // 针对 iOS 键盘弹起后的视口变化
-    if (window.visualViewport) {
-        window.visualViewport.addEventListener('resize', adjustBackBtn);
-    }
-    
-    // 立即执行一次
-    setTimeout(adjustBackBtn, 100);
-})();
