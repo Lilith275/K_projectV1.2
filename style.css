@@ -732,3 +732,26 @@ margin-bottom: calc(max(15px, var(--safe-bottom)) + 5px);
     text-shadow: 0 0 5px rgba(255, 182, 193, 0.6);
     mix-blend-mode: difference; 
 }
+/* 强制补丁：锁死视口高度 */
+html, body {
+    height: 100dvh !important; /* 动态适配有无工具栏的高度 [cite: 108, 110] */
+    width: 100vw !important;
+    position: fixed !important; /* 彻底防止 iOS 的橡皮筋回弹 [cite: 103, 104] */
+    overflow: hidden !important;
+}
+
+.iphone-screen {
+    height: 100dvh !important; /* 确保桌面背景占满全屏 [cite: 154, 155] */
+    min-height: -webkit-fill-available; /* 苹果专用的全屏填充 [cite: 106, 110] */
+}
+
+/* 解决闪黑补丁：为 App 容器预设底色 */
+#app-overlay {
+    background-color: #000 !important; /* 无论如何，底色先设为黑，防止闪白 [cite: 151] */
+    transition: transform 0.4s cubic-bezier(0.33, 1, 0.68, 1) !important; /* 缩短过渡时间减少感知卡顿  */
+}
+
+#app-frame {
+    background: transparent !important;
+    visibility: hidden; /* 默认不可见，直到加载完成 [cite: 147] */
+}
