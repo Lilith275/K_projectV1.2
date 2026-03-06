@@ -12,30 +12,16 @@
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
-body, html {
-    width: 100vw !important; 
-    height: 100vh;
-    margin: 0; 
+html, body {
+    width: 100%;
+    margin: 0;
     padding: 0;
-    overflow: hidden; 
-    position: fixed; /* 强力锁定防止整体偏移 */
-    touch-action: pan-y; /* 只允许纵向滚动，禁止横向手势 */
-    overscroll-behavior-x: none; /* 禁用横向越界滚动效果 */
-    /* 【补丁 A】强制拉伸背景，确保覆盖刘海和底部 */
-    background-attachment: fixed;
-    background-size: 100% 100vh; /* 强制背景图至少撑满 100 视口高度 */
-    
-    /* 【补丁 B】针对 iOS 的特殊填充 */
-    min-height: -webkit-fill-available;
-
-    /* --- 桌面默认壁纸设置 --- */
-/* 修正后的唯一路径：去掉多余的点，合并蒙版 */
-    background: linear-gradient(rgba(0,0,0,0.005), rgba(0,0,0,0.005)), 
-                url('assetsUI/bj.jpg') no-repeat center center fixed;
-    
-    /* 强制铺满 */
-    background-size: cover !important;
-    background-color: #2c2c2c; 
+    /* 关键改动：使用 100dvh 而非 100vh */
+    height: 100dvh !important;   
+    overflow: hidden;            /* 彻底禁止滚动，替代 position: fixed 的锁定效果 */
+    position: relative;          /* 改为 relative，让子元素 fixed 相对视口定位 */
+    touch-action: pan-y;         /* 如果需要保留纵向手势，可以保留，但 overflow: hidden 会阻止一切滚动 */
+    overscroll-behavior-x: none;
 }
 /* 全覆盖锁屏：高级感毛玻璃 + 呼吸灯提示 */
 #lock-screen {
@@ -413,9 +399,11 @@ padding: 10px
 
 /* 底部 Dock 保持不变 */
 .dock {
-margin: 0 15px calc(8px + var(--safe-bottom)); /* 减小底部间距 */
-margin-bottom: calc(max(15px, var(--safe-bottom)) + 5px);
-    height: 70px;      /* 从 75px 缩小到 70px */
+    margin: 0 15px;               /* 左右边距保留 */
+    margin-bottom: 0;              /* 清除之前的所有 margin-bottom */
+    padding-bottom: env(safe-area-inset-bottom, 0px);  /* 关键：用内边距撑开安全区 */
+    height: 70px;                 
+    /* 其他样式（背景、圆角等）保持不变 */
     background: rgba(255, 255, 255, 0.1); 
     border-radius: 22px;
     display: flex;
