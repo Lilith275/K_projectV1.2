@@ -19,6 +19,8 @@ body, html {
     padding: 0;
     overflow: hidden; 
     position: fixed; /* 强力锁定防止整体偏移 */
+    top: 0;
+    left: 0;
     touch-action: pan-y; /* 只允许纵向滚动，禁止横向手势 */
     overscroll-behavior-x: none; /* 禁用横向越界滚动效果 */
 
@@ -38,6 +40,8 @@ body, html {
     left: 0; 
     width: 100vw; 
     height: 100vh;
+    height: 100dvh; /* 动态适配高度 */
+    min-height: -webkit-fill-available;
     
     /* 锁屏壁纸：确保 sp.jpg 文件存在 */
     background-image: url('assetsUI/sp.jpg'); 
@@ -245,6 +249,7 @@ body, html {
 /* App 容器层级 */
 #app-overlay {
     position: fixed;
+    height: 100dvh;
     top: 0; left: 0; width: 100%; height: 100%;
     background-color: #ffffff; /* 或者你想要的颜色 */
     z-index: 10000; 
@@ -255,6 +260,7 @@ body, html {
 #app-overlay.open { 
     transform: translateY(0); 
     pointer-events: auto; 
+    padding-bottom: var(--safe-bottom); /* 确保 App 里的按钮不被横条挡住 */
 }
 
 /* ============================
@@ -413,7 +419,9 @@ margin: 0 15px calc(8px + var(--safe-bottom)); /* 减小底部间距 */
     backdrop-filter: blur(10px); 
     -webkit-backdrop-filter: blur(10px);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    bottom: 0;
     border: 1px solid rgba(255, 255, 255, 0.1); 
+    position: relative;
 }
 .icon-img-small {
     width: 44px;       /* 从 48px 缩小到 44px */
