@@ -341,3 +341,28 @@ function fixFullHeight() {
 window.visualViewport.addEventListener('resize', fixFullHeight);
 window.visualViewport.addEventListener('scroll', (e) => e.preventDefault());
 fixFullHeight(); // 初始化执行一次
+
+function adjustLayout() {
+    window.scrollTo(0, 0);
+    if (window.visualViewport) {
+        // 同时撑开桌面和锁屏，彻底消灭黑边
+        const realHeight = `${window.visualViewport.height}px`;
+        
+        const screen = document.querySelector('.iphone-screen');
+        if (screen) screen.style.height = realHeight;
+        
+        const lockScreen = document.getElementById('lock-screen');
+        if (lockScreen) lockScreen.style.height = realHeight;
+    }
+}
+
+// 绑定监听器（复刻你旧代码的逻辑）
+if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', adjustLayout);
+    window.visualViewport.addEventListener('scroll', (e) => { 
+        e.preventDefault(); 
+        window.scrollTo(0, 0); 
+    });
+}
+// 初始化执行一次
+adjustLayout();
