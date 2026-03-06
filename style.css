@@ -755,3 +755,25 @@ html, body {
     background: transparent !important;
     visibility: hidden; /* 默认不可见，直到加载完成 [cite: 147] */
 }
+
+/* 手机端黑屏救急补丁 */
+#app-overlay {
+    background-color: #1a1a1a !important; /* 强制给个底色，不要透明 */
+    display: block !important;
+    visibility: visible !important;
+}
+
+#app-frame {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: #fff !important; /* 强制给 iframe 一个白色底，看看能不能出画面 */
+    /* 解决 iOS 下 iframe 不显示内容的 Bug */
+    -webkit-overflow-scrolling: touch !important;
+}
+
+/* 确保主屏幕不会挡住 App 层 */
+#app-overlay.open {
+    z-index: 2000000 !important; 
+    transform: translateY(0) !important;
+}
