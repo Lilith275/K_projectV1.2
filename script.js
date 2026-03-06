@@ -330,3 +330,41 @@ document.addEventListener('touchmove', (e) => {
     // 立即执行一次
     setTimeout(adjustBackBtn, 100);
 })();
+
+/* 强制修复手机端 iframe 黑屏脚本 */
+(function() {
+    const frame = document.getElementById('app-frame');
+    const overlay = document.getElementById('app-overlay');
+
+    // 重新定义启动逻辑，增加渲染心跳
+    window.launchApp = function(url) {
+        console.log("准备加载模块:", url);
+        
+        // 1. 强制重置 frame 状态
+        frame.style.opacity = "0";
+        frame.src = "about:blank"; // 先清空，解决缓存黑屏
+        
+        // 2. 延迟注入真正的 URL
+        setTimeout(() => {
+            frame.src = url;
+            overlay.classList.add('open');
+            
+            // 3. 核心：监听加载完成
+            frame.onload = function() {
+                console.log("模块加载完毕");
+                frame.style.opacity = "1";
+                // 强制触发一次重绘
+                frame.style.display = 'none';
+                frame.offsetHeight; 
+                frame.style.display = 'block';
+            };
+        }, 100);
+    };
+
+    // 检查是否有跨域限制导致的黑屏
+    window.onerror = function(msg, url, line) {
+        if (msg.includes('SecurityError')) {
+            alert("由于浏览器安全限制，请确保子页面和主页面在同一个域名下");
+        }
+    };
+})();
