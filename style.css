@@ -18,10 +18,7 @@ body, html {
     margin: 0; 
     padding: 0;
     overflow: hidden; 
-    top: 0;
-    left: 0;
-    touch-action: pan-y; /* 只允许纵向滚动，禁止横向手势 */
-    overscroll-behavior-x: none; /* 禁用横向越界滚动效果 */
+    
 
     /* --- 桌面默认壁纸设置 --- */
 /* 修正后的唯一路径：去掉多余的点，合并蒙版 */
@@ -39,8 +36,6 @@ body, html {
     left: 0; 
     width: 100vw; 
     height: 100vh;
-    height: 100dvh; /* 动态适配高度 */
-    min-height: -webkit-fill-available;
     
     /* 锁屏壁纸：确保 sp.jpg 文件存在 */
     background-image: url('assetsUI/sp.jpg'); 
@@ -94,7 +89,7 @@ body, html {
 /* 解锁文字：添加呼吸灯动画 */
 .unlock-text { 
     color: #ffffff; 
-    font-size: 20px;
+    font-size: 30px;
     letter-spacing: 4px; 
     font-weight: 200; /* 极细字体更高级 */
      text-shadow: 0 0 20px rgb(255, 125, 145);
@@ -248,9 +243,8 @@ body, html {
 /* App 容器层级 */
 #app-overlay {
     position: fixed;
-    height: 100dvh;
     top: 0; left: 0; width: 100%; height: 100%;
-    background-color: #ffffff; /* 或者你想要的颜色 */
+    background: #000;
     z-index: 10000; 
     transform: translateY(100%);
     transition: transform 0.4s cubic-bezier(0.33, 1, 0.68, 1);
@@ -259,7 +253,6 @@ body, html {
 #app-overlay.open { 
     transform: translateY(0); 
     pointer-events: auto; 
-    padding-bottom: var(--safe-bottom); /* 确保 App 里的按钮不被横条挡住 */
 }
 
 /* ============================
@@ -418,9 +411,7 @@ margin: 0 15px calc(8px + var(--safe-bottom)); /* 减小底部间距 */
     backdrop-filter: blur(10px); 
     -webkit-backdrop-filter: blur(10px);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    bottom: 0;
     border: 1px solid rgba(255, 255, 255, 0.1); 
-    position: relative;
 }
 .icon-img-small {
     width: 44px;       /* 从 48px 缩小到 44px */
