@@ -42,18 +42,7 @@ function launchApp(url) {
     const frame = document.getElementById('app-frame');
     const backBtn = document.getElementById('global-back-btn');
     
- // 只有路径不同才重新加载
-    if (frame.src !== url) {
-        // 先隐藏，防止看到加载过程中的白屏/黑屏
-        frame.style.opacity = '0';
-        frame.src = url;
-    
-   // 监听加载完成事件
-        frame.onload = () => {
-            frame.style.transition = 'opacity 0.3s ease';
-            frame.style.opacity = '1'; // 加载完后丝滑淡入
-        };
-    }
+    if (frame.src !== url) frame.src = url; 
     
     overlay.classList.add('open');
     backBtn.style.display = 'flex'; // 关键：显示按钮
@@ -340,53 +329,4 @@ document.addEventListener('touchmove', (e) => {
     
     // 立即执行一次
     setTimeout(adjustBackBtn, 100);
-})();
-
-function fixFullHeight() {
-    if (window.visualViewport) {
-        // 假设你的主容器类名是 .iphone-screen
-        const screen = document.querySelector('.iphone-screen');
-        if (screen) screen.style.height = `${window.visualViewport.height}px`;
-    }
-}
-window.visualViewport.addEventListener('resize', fixFullHeight);
-window.visualViewport.addEventListener('scroll', (e) => e.preventDefault());
-fixFullHeight(); // 初始化执行一次
-
-/* 终极补丁：强制适配与防闪烁 */
-(function() {
-    // 1. 强制高度修正函数
-    const forceFixHeight = () => {
-        const h = window.innerHeight;
-        document.documentElement.style.height = h + 'px';
-        document.body.style.height = h + 'px';
-        const screen = document.querySelector('.iphone-screen');
-        if (screen) screen.style.height = h + 'px'; // [cite: 99]
-    };
-
-    // 2. 劫持原有的 launchApp 函数
-    const originalLaunchApp = window.launchApp;
-    window.launchApp = function(url) {
-        const frame = document.getElementById('app-frame');
-        const overlay = document.getElementById('app-overlay');
-        
-        // 先让 frame 隐身，防止之前的页面残留
-        frame.style.visibility = 'hidden';
-        frame.style.opacity = '0';
-        
-        // 调用原函数启动加载 [cite: 42]
-        originalLaunchApp(url);
-
-        // 核心补丁：加载完毕后再瞬间展示，消除闪黑
-        frame.onload = () => {
-            frame.style.visibility = 'visible';
-            frame.style.transition = 'opacity 0.2s';
-            frame.style.opacity = '1';
-        };
-    };
-
-    // 3. 初始执行并监听
-    window.addEventListener('resize', forceFixHeight); // [cite: 96]
-    window.addEventListener('load', forceFixHeight); // [cite: 57]
-    forceFixHeight();
 })();
