@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover">
+    <title>K-OS System</title>
+    <link rel="stylesheet" href="style.css">
+
+    <script>
+        (function() {
+            const fontConfig = JSON.parse(localStorage.getItem('k_font_config') || '{}');
+            const savedLockBg = localStorage.getItem('k_lock_bg');
+            const savedDeskBg = localStorage.getItem('k_desk_bg');
+
+            let css = "";
+            if (fontConfig.color) {
+                css += `
+                    #lock-time { 
+                        color: ${fontConfig.color} !important; 
+                        font-size: ${fontConfig.size || '88px'} !important; 
+                        letter-spacing: ${fontConfig.space || '-2px'} !important; 
+                        opacity: ${fontConfig.alpha || 1} !important; 
+                    }
+                    .app-label { color: ${fontConfig.deskColor || '#ffffff'} !important; }
+                `;
+            }
+            if (savedLockBg) css += `#lock-screen { background-image: url(${savedLockBg}) !important; background-size: cover; background-position: center; }`;
+            if (savedDeskBg) css += `body { background-image: url(${savedDeskBg}) !important; background-size: cover; background-position: center; } .iphone-screen { background: transparent !important; }`;
+
+            const styleTag = document.createElement('style');
+            styleTag.innerHTML = css;
+            document.head.appendChild(styleTag);
+        })();
+    </script>
+</head>
+<body>
+    <div id="lock-screen" onclick="unlockScreen()">
+        <div class="lock-top">
+            <div id="lock-time">00:00</div>
+            <div class="lock-date" id="lock-date-display">3月5日 星期四</div>
+        </div>
+
+        <div class="lock-bottom">
+            <div class="unlock-text">轻点解锁..</div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        </div>
+
+    <script>
+        // 解锁函数：给锁屏加上 'unlocked' 类名，触发 CSS 中的向上平移
+        function unlockScreen() {
+            const lock = document.getElementById('lock-screen');
+            lock.classList.add('unlocked');
+        }
+
+        // 动态更新时间函数
+        function updateTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            
+            // 更新锁屏时间
+            const timeElem = document.getElementById('lock-time');
+            if (timeElem) timeElem.innerText = `${hours}:${minutes}`;
+
+            // 更新锁屏日期 (示例格式：3月5日 星期四)
+            const dateElem = document.getElementById('lock-date-display');
+            if (dateElem) {
+                const options = { month: 'long', day: 'numeric', weekday: 'long' };
+                dateElem.innerText = now.toLocaleDateString('zh-CN', options);
+            }
+        }
+
+        // 每秒钟刷新一次时间
+        setInterval(updateTime, 1000);
+        updateTime(); // 页面加载时立即执行一次
+    </script>
+</body>
+    <div class="iphone-screen">
+        <div class="status-bar">
+            <div class="status-right">
+               
+                <span class="battery-percent"></span>
+            </div>
+        </div>
+
+        <div class="desktop">
+           <div class="widget top-profile-card" style="grid-column: 1 / span 4; grid-row: 1 / span 2;">
+    <div class="profile-avatar">
+        <img src="assetsUI/avatar.png" onerror="this.style.display='none'">
+    </div>
+    
+    <div class="profile-id">ID: Lilith</div>
+    
+    <div class="profile-time-container">
+        <div id="card-time" class="profile-time">00:00</div>
+        <div id="card-date" class="profile-date">2026/03/05</div>
+    </div>
+    
+    <div class="profile-signature">
+        把一切献给流星街，或者一段属于你的告白...
+    </div>
+</div>
+            <div class="app-icon" style="grid-column: 1; grid-row: 3;">
+                <div class="icon-img"><img src="assetsUI/map.png" class="desktop-img" onerror="this.style.display='none'"></div>
+                <div class="app-label">地图</div>
+            </div>
+            <div class="app-icon" style="grid-column: 2; grid-row: 3;">
+                <div class="icon-img"><img src="assetsUI/Instagram.png" class="desktop-img" onerror="this.style.display='none'"></div>
+                <div class="app-label">Instagram</div>
+            </div>
+            <div class="app-icon" style="grid-column: 1; grid-row: 4;">
+                <div class="icon-img"><img src="assetsUI/calc.png" class="desktop-img" onerror="this.style.display='none'"></div>
+                <div class="app-label">计算器</div>
+            </div>
+            <div class="app-icon" style="grid-column: 2; grid-row: 4;">
+                <div class="icon-img"><img src="assetsUI/safari.png" class="desktop-img" onerror="this.style.display='none'"></div>
+                <div class="app-label">Safari</div>
+            </div>
+
+            <div class="widget deco-photo" style="grid-column: 3 / span 2; grid-row: 3 / span 2;">
+               <img src="assetsUI/kuroro.jpg" 
+         alt="Kuroro" 
+         style="width: 100%; height: 100%; object-fit: cover; display: block;"
+         onerror="this.src='https://picsum.photos/400/400'; console.log('图片路径失效，已启用备用图');">
+</div>
+
+       
+           <div class="widget music-widget" style="grid-column: 1 / span 2; grid-row: 5 / span 2;" onclick="togglePlay()">
+                <div class="mini-disk"></div>
+                <div class="music-content">
+                    <div class="lyrics-container">
+                        <div class="lyrics-scroll" id="lyrics">
+                            <p>大切な曆が一部欠けて</p>
+<p>遺きれた月達は盛大に葬うだるう</p>
+<p>喪服の樂團が奏る旋律で</p>
+<p>霜月は高く穩やかに運ばれていく</p>
+<p>菊か葉もろとも涸れ落ちて</p>
+<p>血塗られた緋の目の地に臥す旁らで</p>
+<p>それで貴方の優位は搖るがばい</p>
+<p>遺る手足が半分になろうとも</p>
+<p>幕間劇に興じよう</p>
+<p>新たに仲間な探すもいいだろう</p>
+<p>向かうなら東がいい</p>
+<p>きっと待ち人に會えるから</p>
+<p>End of lyrics.</p> 
+
+                        </div>
+                    </div>
+                    <div class="progress-bar"><div class="progress-inner"></div></div>
+                </div>
+                <div class="decor-text">
+                    <span>在死亡的废墟，演奏交响。</span>
+                    <span style="opacity: 0.8;">PREMIUM</span>
+                </div>
+                <audio id="bg-audio" src="your-music-file.mp3" loop></audio>
+            </div>
+
+            
+            <div class="app-icon" style="grid-column: 3; grid-row: 5;">
+                <div class="icon-img"><img src="assetsUI/calendar.png" class="desktop-img" onerror="this.style.display='none'"></div>
+                <div class="app-label">日历</div>
+            </div>
+            
+            <div class="app-icon" style="grid-column: 4; grid-row: 5;" onclick="launchApp('apps/confession/chat.html')">
+                <div class="icon-img"><img src="assetsUI/krr.png" class="desktop-img"></div>
+                <div class="app-label">告解室</div>
+            </div>
+
+            <div class="app-icon" style="grid-column: 3; grid-row: 6;" onclick="launchApp('apps/music/player.html')">
+                <div class="icon-img"><img src="assetsUI/movie.png" class="desktop-img"></div>
+                <div class="app-label">随身听</div>
+            </div>
+
+            <div class="app-icon" style="grid-column: 4; grid-row: 6;" onclick="launchApp('notes/notes.html')">
+    <div class="icon-img">
+        <img src="assetsUI/memo.png" class="desktop-img" onerror="this.style.display='none'">
+    </div>
+    <div class="app-label">备忘录</div>
+</div>
+
+            <div id="back-to-lock-btn" onclick="backToLock()" title="返回锁屏">🍕</div>
+        </div> <div class="dock">
+            <div class="icon-img-small" onclick="launchApp('Link/link.html')">
+                <img src="assetsUI/link.png" class="desktop-img">
+            </div>         
+            <div class="icon-img-small" onclick="launchApp('Archive/archive.html')">
+                <img src="assetsUI/book.png" class="desktop-img">
+            </div>
+            <div class="icon-img-small">
+                <img src="assetsUI/friends.png" class="desktop-img">
+            </div>
+            <div class="icon-img-small" onclick="launchApp('Canvas/canvas.html')">
+                <img src="assetsUI/built.png" class="desktop-img">
+            </div>
+        </div>
+    <div id="app-overlay">
+        <div id="app-back-btn" onclick="closeApp()"></div>
+        <iframe id="app-frame" src=""></iframe>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover">
+    <title>K. - 灵魂告解</title>
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(180deg, #fff1f2 0%, #ffd1dc 100%);
+            --ai-bubble: rgba(255, 255, 255, 0.7); 
+            --user-bubble: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%); 
+            --text-main: #8a6d7a;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        html, body {
+            position: fixed;
+            width: 100%; height: 100%;
+            margin: 0; padding: 0;
+            overflow: hidden;
+            background: #fff5f7;
+        }
+
+        .phone { 
+            position: fixed;
+            left: 0; top: 0;
+            width: 100vw;
+            height: 100dvh;
+            background: var(--bg-gradient); 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden; 
+        }
+
+        .header { 
+            padding: calc(env(safe-area-inset-top) + 10px) 20px 15px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+            flex-shrink: 0;
+            width: 100%;
+            position: relative;
+            z-index: 2000; 
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        /* === 新增：右上角美化按钮 === */
+        .beauty-btn {
+            position: absolute;
+            right: 15px;
+            top: calc(env(safe-area-inset-top) + 12px);
+            width: 34px;
+            height: 34px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            border: 1px solid #ffd1dc;
+            text-decoration: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            z-index: 2001;
+        }
+
+        .name { font-size: 24px; font-weight: 600; letter-spacing: 6px; color: #ff85a2; pointer-events: none; }
+        .status { font-size: 11px; color: #b8a0aa; pointer-events: none; }
+
+        #chatDisplay { 
+            flex: 1; 
+            overflow-y: auto; 
+            padding: 15px; 
+            display: flex; 
+            flex-direction: column;
+            -webkit-overflow-scrolling: touch;
+        }
+        #chatDisplay::-webkit-scrollbar { display: none; }
+
+        .bubble { 
+            max-width: 80%; padding: 12px 18px; border-radius: 22px; 
+            font-size: 15px; line-height: 1.5; margin-bottom: 18px; 
+            backdrop-filter: blur(8px); box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            animation: bubblePop 0.4s ease-out; word-wrap: break-word;
+        }
+        .ai { align-self: flex-start; background: var(--ai-bubble); color: var(--text-main); border-bottom-left-radius: 6px; border: 1px solid rgba(255,255,255,0.4); }
+        .user { align-self: flex-end; background: var(--user-bubble); color: #fff; border-bottom-right-radius: 6px; }
+
+        .input-area {
+            padding: 10px 15px calc(10px + env(safe-area-inset-bottom));
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(15px);
+            display: flex; gap: 10px; flex-shrink: 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+            align-items: flex-end;
+        }
+
+        #userInput { 
+            flex: 1; background: #fff; border: 1px solid #ffd1dc; border-radius: 20px; 
+            padding: 10px 15px; outline: none; font-size: 16px !important; 
+            color: #8a6d7a; resize: none; height: 44px; line-height: 1.4;
+        }
+
+        #sendBtn, #plusBtn { 
+            width: 44px; height: 44px; border: none; border-radius: 50%; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        }
+        #sendBtn { background: #ff85a2; color: #fff; box-shadow: 0 4px 10px rgba(255, 133, 162, 0.3); }
+        #plusBtn { background: #fff; color: #ff85a2; border: 1px solid #ffd1dc; font-size: 24px; transition: transform 0.2s; }
+        #plusBtn.active { transform: rotate(45deg); color: #b8a0aa; }
+
+        /* === 定位卡片 UI === */
+/* === 定位卡片 UI 修复版 === */
+.bubble-location { 
+    background: #fff !important; 
+    color: #333 !important; 
+    padding: 0 !important; 
+    width: 260px;          /* 增加宽度 */
+    min-height: 180px;     /* 强制一个最小高度，防止变扁 */
+    border-radius: 12px; 
+    overflow: hidden; 
+    border: 1px solid rgba(0,0,0,0.1) !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.loc-info { 
+    padding: 12px 15px;    /* 增加内边距，让文字不挨着边 */
+    background: #fff;
+}
+
+.loc-title { 
+    font-size: 14px;       /* 标题大小 */
+    font-weight: 600; 
+    margin-bottom: 4px; 
+    color: #1a1a1a; 
+    line-height: 1.2;
+}
+
+.loc-addr { 
+    font-size: 11px;       /* 地址大小 */
+    color: #888; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    white-space: nowrap; 
+}
+
+.loc-map { 
+    width: 100%; 
+    height: 130px;         /* 强制地图高度 */
+    object-fit: cover;     /* 保证图片铺满不拉伸 */
+    display: block; 
+    background: #f5f5f5; 
+    border-top: 1px solid #f0f0f0; /* 给图片和文字之间加个微弱的分隔 */
+}
+        /* === 功能面板 UI === */
+        #extraMenu { display: none; background: #fff; padding: 20px 15px; border-top: 1px solid #f0f0f0; grid-template-columns: repeat(4, 1fr); gap: 15px; animation: slideUp 0.3s ease; }
+        #extraMenu.active { display: grid; }
+        .menu-item { display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 12px; color: #8a6d7a; }
+        .menu-icon { width: 52px; height: 52px; background: #fff5f7; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 26px; border: 1px solid #ffd1dc; }
+        
+        #emojiPicker { display: none; grid-column: span 4; grid-template-columns: repeat(4, 1fr); gap: 12px; padding-top: 15px; border-top: 1px solid #fef2f4; max-height: 220px; overflow-y: auto; }
+        .emoji-wrap { position: relative; width: 100%; aspect-ratio: 1; }
+.emoji-img { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: contain; /* 改为 contain，防止动图被裁剪变形 */
+    border-radius: 10px; 
+    border: 1px solid #eee; 
+    cursor: pointer;
+    image-rendering: -webkit-optimize-contrast; /* 提高动图清晰度 */
+}        .emoji-del { position: absolute; top: -6px; right: -6px; width: 20px; height: 20px; background: #ff5c7e; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; cursor: pointer; border: 2px solid #fff; z-index: 10; }
+
+        .bubble-img { background: transparent !important; box-shadow: none !important; padding: 0 !important; border: none !important; }
+        .bubble-img img { max-width: 140px; border-radius: 12px; display: block; }
+
+        @keyframes bubblePop { from { opacity: 0; transform: translateY(15px) scale(0.8); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <div class="phone">
+        <div class="header" id="headerTrigger">
+            <div class="name">K.</div>
+            <div class="status">静谧的告解室 · 灵魂共鸣中</div>
+        </div>
+
+        <div id="chatDisplay">
+            <div class="bubble ai">“在这里，你所有的秘密都是安全的。想聊聊吗？”</div>
+        </div>
+
+        <div class="input-area">
+            <button id="plusBtn" onclick="toggleMenu()">＋</button>
+            <textarea id="userInput" placeholder="输入告解..." rows="1" autocorrect="off" autocomplete="off" spellcheck="false"></textarea>
+            <button id="sendBtn">➤</button>
+        </div>
+
+      <div id="extraMenu">
+    <div class="menu-item" onclick="sendLocation()">
+        <div class="menu-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22px" height="22px" viewBox="0 0 18 18">
+                <circle cx="9" cy="5" r="3.25" fill="none" stroke="#ff85a2" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></circle>
+                <line x1="9" y1="13.25" x2="9" y2="8.25" fill="none" stroke="#ff85a2" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></line>
+                <path d="M12,12.429c2.507,.315,4.25,1.012,4.25,1.821,0,1.105-3.246,2-7.25,2s-7.25-.895-7.25-2c0-.809,1.743-1.507,4.25-1.821" fill="none" stroke="#ff85a2" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
+            </svg>
+        </div>
+        <span>定位</span>
+    </div>
+
+    <div class="menu-item" onclick="toggleEmoji()">
+        <div class="menu-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 18 18">
+                <path opacity="0.3" d="M9 17.0007C4.5889 17.0007 1 13.4118 1 9.0007C1 4.5896 4.5889 1.0007 9 1.0007C13.4111 1.0007 17 4.5896 17 9.0007C17 13.4118 13.4111 17.0007 9 17.0007Z" fill="#ff85a2"></path>
+                <path d="M9 13.7507C7.8247 13.7507 6.74661 13.156 6.11621 12.1594C5.89451 11.8098 5.999 11.3464 6.3491 11.1247C6.6982 10.9035 7.1626 11.007 7.3838 11.3576C7.7378 11.9167 8.3418 12.2507 9 12.2507C9.6582 12.2507 10.2622 11.9167 10.6162 11.3576C10.8374 11.007 11.3013 10.9035 11.6509 11.1247C12.001 11.3464 12.1055 11.8098 11.8838 12.1594C11.2534 13.156 10.1753 13.7507 9 13.7507Z" fill="#ff85a2"></path>
+                <path d="M6 10.0007C6.5523 10.0007 7 9.5527 7 9.0007C7 8.4487 6.5523 8.0007 6 8.0007C5.4477 8.0007 5 8.4487 5 9.0007C5 9.5527 5.4477 10.0007 6 10.0007Z" fill="#ff85a2"></path>
+                <path d="M12 10.0007C12.5523 10.0007 13 9.5527 13 9.0007C13 8.4487 12.5523 8.0007 12 8.0007C11.4477 8.0007 11 8.4487 11 9.0007C11 9.5527 11.4477 10.0007 12 10.0007Z" fill="#ff85a2"></path>
+            </svg>
+        </div>
+        <span>表情</span>
+    </div>
+
+    <div class="menu-item" onclick="alert('即将上线')">
+        <div class="menu-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22px" height="22px" viewBox="0 0 18 18">
+                <path opacity="0.3" fill-rule="evenodd" clip-rule="evenodd" d="M15.75 13.25V11.75H13C12.034 11.75 11.25 10.966 11.25 10C11.25 9.033 12.034 8.25 13 8.25H15.75V6.5C15.75 5.395 14.855 4.5 13.75 4.5H4.25C3.145 4.5 2.25 5.395 2.25 6.5V13.25C2.25 14.355 3.145 15.25 4.25 15.25H13.75C14.855 15.25 15.75 14.355 15.75 13.25Z" fill="#ff85a2"></path>
+                <path d="M2.25 6.49998C2.25 4.76698 3.499 3.28698 5.207 2.99498L11.769 1.87498C12.203 1.80098 12.635 2.01998 12.832 2.41398" stroke="#ff85a2" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
+                <path d="M15.75 11.75V13.25C15.75 14.355 14.855 15.25 13.75 15.25H4.25C3.145 15.25 2.25 14.355 2.25 13.25V6.75C2.25 5.645 3.145 4.75 4.25 4.75H13.75C14.855 4.75 15.75 5.645 15.75 6.75V8.25" stroke="#ff85a2" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
+                <path d="M15.75 11.75H13C12.034 11.75 11.25 10.966 11.25 10C11.25 9.033 12.034 8.25 13 8.25H15.75C16.302 8.25 16.75 8.698 16.75 9.25V10.75C16.75 11.302 16.302 11.75 15.75 11.75Z" stroke="#ff85a2" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
+            </svg>
+        </div>
+        <span>红包</span>
+    </div>
+
+    <div class="menu-item" onclick="alert('开发中')">
+        <div class="menu-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22px" height="22px" viewBox="0 0 18 18">
+                <path d="M2.665 5.086L8.534 1.995C8.826 1.841 9.174 1.841 9.466 1.995L15.336 5.086C15.87 5.367 15.87 6.132 15.336 6.413L9.466 9.504C9.174 9.658 8.826 9.658 8.534 9.504L2.665 6.414C2.131 6.133 2.131 5.367 2.665 5.086Z" fill="#ff85a2" fill-opacity="0.3"></path>
+                <path d="M2.665 5.086L8.534 1.995C8.826 1.841 9.174 1.841 9.466 1.995L15.336 5.086C15.87 5.367 15.87 6.132 15.336 6.413L9.466 9.504C9.174 9.658 8.826 9.658 8.534 9.504L2.665 6.414C2.131 6.133 2.131 5.367 2.665 5.086Z" stroke="#ff85a2" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
+                <path d="M15.736 9C15.736 9.261 15.602 9.523 15.335 9.664L9.46499 12.755C9.17299 12.909 8.82499 12.909 8.53299 12.755L2.66299 9.664C2.39599 9.523 2.26199 9.262 2.26199 9" stroke="#ff85a2" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
+                <path d="M15.736 12.25C15.736 12.511 15.602 12.773 15.335 12.914L9.46499 16.005C9.17299 16.159 8.82499 16.159 8.53299 16.005L2.66299 12.914C2.39599 12.773 2.26199 12.512 2.26199 12.25" stroke="#ff85a2" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
+            </svg>
+        </div>
+        <span>更多</span>
+    </div>
+
+    <div id="emojiPicker"></div>
+</div>
+    </div>
+
+    <script>
+        // --- 核心变量 ---
+        const chatDisplay = document.getElementById('chatDisplay');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const plusBtn = document.getElementById('plusBtn');
+
+        // 表情包配置
+        let myEmojis = ['bd1.gif', 'cry.gif', 'qiuqiu.gif', 'sleep.gif', 'thankyou.gif', 'sleep 2.gif', 'wow.gif'];
+
+        // 输入框高度自适应
+        userInput.addEventListener('input', function() {
+            this.style.height = '42px';
+            this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+        });
+
+        const sounds = {
+            pop: new Audio('https://assets.mixkit.co/active_storage/sfx/3005/3005-preview.mp3'),
+            send: new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3')
+        };
+
+        let messageHistory = [];
+        let isTyping = false;
+        let replyTimer = null;
+
+        // 布局适配
+        function adjustLayout() {
+            window.scrollTo(0, 0);
+            if (window.visualViewport) {
+                document.querySelector('.phone').style.height = `${window.visualViewport.height}px`;
+            }
+            chatDisplay.scrollTop = chatDisplay.scrollHeight;
+        }
+
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', adjustLayout);
+        }
+
+        // 初始化加载历史记录
+        window.onload = () => {
+            const saved = localStorage.getItem('k_history');
+            if (saved) {
+                try {
+                    messageHistory = JSON.parse(saved);
+                    chatDisplay.innerHTML = ''; 
+                    messageHistory.forEach(msg => {
+                        if (msg.parts && msg.parts[0]?.text) {
+                            addBubble(msg.role === 'user' ? 'user' : 'ai', msg.parts[0].text);
+                        }
+                    });
+                } catch (e) { console.error("历史记录解析失败:", e); }
+            }
+            renderEmojis();
+            adjustLayout();
+        };
+
+        // --- 功能函数 ---
+        function toggleMenu() { 
+            const menu = document.getElementById('extraMenu');
+            menu.classList.toggle('active'); 
+            plusBtn.classList.toggle('active');
+            adjustLayout(); 
+        }
+
+        function toggleEmoji() { 
+            const p = document.getElementById('emojiPicker'); 
+            p.style.display = p.style.display === 'grid' ? 'none' : 'grid'; 
+        }
+        
+        function renderEmojis() {
+            const picker = document.getElementById('emojiPicker');
+            picker.innerHTML = myEmojis.map((img, i) => `
+                <div class="emoji-wrap">
+                    <div class="emoji-del" onclick="removeEmoji(${i}, event)">×</div>
+                    <img src="biaoqing/${img}" class="emoji-img" onclick="sendSpecial('biaoqing/${img}', 'img')">
+                </div>
+            `).join('');
+        }
+
+        function removeEmoji(index, e) {
+            e.stopPropagation();
+            if(confirm("确定删除这张表情吗？")) {
+                myEmojis.splice(index, 1);
+                renderEmojis();
+            }
+        }
+
+        function sendLocation() {
+    // 弹出输入框让你自己输入文字
+    const userAddr = prompt("请输入你想显示的告解地点：", "流星街");
+    
+    // 如果你点击了取消或没输入，就直接返回，不发消息
+    if (!userAddr) return;
+
+    // 构造发送内容：格式为 📍 标题|详细描述
+    // 你可以把后面的描述也改成让用户输入，或者固定一个模糊地址
+    const fullContent = `📍 ${userAddr}|正在定位中...`;
+    
+    sendSpecial(fullContent, "loc");
+}
+
+        // 处理特殊消息发送
+   async function sendSpecial(path, type) {
+    if (type === 'img') {
+        // 1. 修正函数名：将 appendMessage 改为 addBubble
+        addBubble('user', path); // 注意：这里直接传 path，因为你的 addBubble 逻辑里已经写了如果是 biaoqing/ 开头就显示图片
+        
+        try {
+            // 2. 转换图片为 Base64 让 AI 睁眼
+            const resp = await fetch(path);
+            const blob = await resp.blob();
+            const reader = new FileReader();
+            
+            reader.onloadend = () => {
+                const base64Data = reader.result.split(',')[1];
+                
+                // 3. 把图片数据塞进给 AI 的记忆里
+                messageHistory.push({
+                    role: "user",
+                    parts: [
+                        { inline_data: { mime_type: "image/gif", data: base64Data } },
+                        { text: "（发送了一张表情包）" }
+                    ]
+                });
+                
+                // 4. 保存历史记录并呼叫 AI
+                localStorage.setItem('k_history', JSON.stringify(messageHistory));
+                const base = localStorage.getItem('k_base'), 
+                      key = localStorage.getItem('k_key'), 
+                      model = localStorage.getItem('k_model');
+                fetchAI(base, key, model, "发送了图片");
+            };
+            reader.readAsDataURL(blob);
+        } catch (error) {
+            console.error("图片转换失败:", error);
+            // 失败了也让 AI 回复一下
+            messageHistory.push({ role: "user", parts: [{ text: "[发送了一张图片]" }] });
+            const base = localStorage.getItem('k_base'), 
+                  key = localStorage.getItem('k_key'), 
+                  model = localStorage.getItem('k_model');
+            fetchAI(base, key, model, "发送了图片");
+        }
+    } else if (type === 'loc') {
+        // 定位逻辑也统一使用 addBubble
+        addBubble('user', path);
+        messageHistory.push({ role: "user", parts: [{ text: path }] });
+        localStorage.setItem('k_history', JSON.stringify(messageHistory));
+        const base = localStorage.getItem('k_base'), 
+              key = localStorage.getItem('k_key'), 
+              model = localStorage.getItem('k_model');
+        fetchAI(base, key, model, path);
+    }
+}
+        // 核心发送逻辑
+        async function handleSend() {
+            const text = userInput.value.trim();
+            if (!text || isTyping) return;
+            const base = localStorage.getItem('k_base'), key = localStorage.getItem('k_key'), model = localStorage.getItem('k_model');
+            sounds.send.play().catch(()=>{});
+            addBubble('user', text);
+            userInput.value = '';
+            userInput.style.height = '44px';
+            messageHistory.push({ role: "user", parts: [{ text: text }] });
+            localStorage.setItem('k_history', JSON.stringify(messageHistory));
+            if (replyTimer) clearTimeout(replyTimer);
+            replyTimer = setTimeout(() => fetchAI(base, key, model, text), 1000);
+        }
+
+        // API 调用逻辑（完全保留你的设置）
+  async function fetchAI(base, key, model, userInputText) {
+            isTyping = true;
+            try {
+                // === 新增：从生活手册读取上下文 (不修改原始逻辑，仅作为变量注入) ===
+                let lifeManualInfo = "";
+                // 30% 概率让 AI 注意到手册内容，保持神秘感
+                if (Math.random() < 0.3) {
+                    const finData = JSON.parse(localStorage.getItem('k_finance') || '[]');
+                    const noteData = JSON.parse(localStorage.getItem('k_notes') || '[]');
+                    const diaryData = JSON.parse(localStorage.getItem('k_diaries') || '[]');
+                    const diaryAuth = localStorage.getItem('k_ai_diary_auth') === 'true';
+
+                    lifeManualInfo = "\n【当前观察到的生活碎片】：";
+                    if (finData.length > 0) {
+                        const f = finData[finData.length-1];
+                        lifeManualInfo += `最近账本记录了${f.category}(${f.amount}元)；`;
+                    }
+                    if (noteData.length > 0) {
+                        lifeManualInfo += `备忘录里新写了《${noteData[noteData.length-1].title}》；`;
+                    }
+                    if (diaryData.length > 0) {
+                        if (diaryAuth) {
+                            lifeManualInfo += `读到了对方的日记："${diaryData[diaryData.length-1].content.substring(0, 30)}..."；`;
+                        } else {
+                            lifeManualInfo += `发现对方写了新日记，但我没有权限阅读，这让我很好奇。`;
+                        }
+                    }
+                }
+
+                const s = localStorage.getItem('k_world_Chrollo_setting') || "一个神秘的告解者";
+                const m = localStorage.getItem('k_world_Chrollo_memory') || "暂无重要记忆";
+                
+                // 将生活手册信息拼接到 Prompt 中
+                const dynamicPrompt = `【人设、背景与风格】:${s}\n【记忆】:${m}${lifeManualInfo}\n请严格遵守人设，自然对话。如果提到了生活碎片，要像观察者一样不经意地流露，不要生硬罗列。`;
+
+                let url, body, headers = { 'Content-Type': 'application/json' };
+
+              // --- 核心请求逻辑开始 ---
+if (model.includes('gpt') || model.includes('o1')) { 
+    url = `${base.replace(/\/$/, '')}/v1/chat/completions`;
+    headers['Authorization'] = `Bearer ${key}`;
+    const openaiMessages = [
+        { role: "system", content: dynamicPrompt },
+        ...messageHistory.map(msg => ({
+            role: msg.role === 'model' ? 'assistant' : 'user',
+            // GPT 暂时只处理文本，保持原样
+            content: msg.parts[0].text || "发送了内容" 
+        }))
+    ];
+    body = JSON.stringify({ model: model, messages: openaiMessages, temperature: 0.85 });
+} else if (model.includes('claude')) {
+    url = `${base.replace(/\/$/, '')}/v1/messages`;
+    headers['x-api-key'] = key;
+    headers['anthropic-version'] = '2023-06-01';
+    body = JSON.stringify({
+        model: model,
+        system: dynamicPrompt,
+        messages: messageHistory.map(msg => ({
+            role: msg.role === 'model' ? 'assistant' : 'user',
+            content: msg.parts[0].text || "发送了内容"
+        })),
+        max_tokens: 2048
+    });
+} else {
+    // === Gemini 逻辑（支持看图的关键） ===
+    // 强制使用 v1beta 路径，避免 v1 接口无法处理多模态
+    const cleanBase = base.replace(/\/$/, '');
+    url = cleanBase.includes('/v1beta') ? 
+        `${cleanBase}/models/${model}:generateContent?key=${key}` : 
+        `${cleanBase}/v1beta/models/${model}:generateContent?key=${key}`;
+    
+    // 注意：这里不再使用 .map 过滤，而是直接发送完整的 messageHistory
+    // 这样里面的 inline_data (图片) 才能发给 AI
+    body = JSON.stringify({
+        system_instruction: { parts: [{ text: dynamicPrompt }] }, 
+        contents: messageHistory, 
+        generationConfig: { temperature: 0.85, maxOutputTokens: 2048 }
+    });
+}
+
+// 发送请求并处理结果
+const res = await fetch(url, { method: 'POST', headers: headers, body: body });
+const data = await res.json();
+if (data.error) throw new Error(data.error.message || "API Error");
+
+let fullText = "";
+if (data.choices) { 
+    fullText = data.choices[0].message.content;
+} else if (data.content && Array.isArray(data.content) && data.content[0].text) { 
+    fullText = data.content[0].text;
+} else if (data.candidates && data.candidates[0].content) { 
+    // Gemini 的返回路径
+    fullText = data.candidates[0].content.parts[0].text;
+}
+// --- 核心请求逻辑结束 ---
+                // 如果用户在对话中提到了密码 1111，自动解锁 AI 的日记阅读权限
+                if (userInputText.includes("1111")) {
+                    localStorage.setItem('k_ai_diary_auth', 'true');
+                }
+
+                messageHistory.push({ role: "model", parts: [{ text: fullText }] });
+                localStorage.setItem('k_history', JSON.stringify(messageHistory));
+
+                const fragments = fullText.split(/\n+|(?<=[。！？])\s+/).filter(s => s.trim());
+                for (const f of fragments) {
+                    const bubble = addBubble('ai', '');
+                    await typeWriter(f, bubble);
+                    await new Promise(r => setTimeout(r, 800));
+                }
+                extractMemorySilently(base, key, model, userInputText, fullText);
+
+            } catch (e) {
+                console.error(e);
+                addBubble('ai', "……（信号由于念压变得不稳定）");
+            } finally { 
+                isTyping = false; 
+            }
+        }
+        async function extractMemorySilently(base, key, model, uText, aText) {
+            // 原有记忆提取逻辑
+        }
+
+        function typeWriter(text, element) {
+            return new Promise((resolve) => {
+                let i = 0;
+                function type() {
+                    if (i < text.length) {
+                        element.innerText += text.charAt(i++);
+                        chatDisplay.scrollTop = chatDisplay.scrollHeight;
+                        if (Math.random() > 0.8) sounds.pop.play().catch(()=>{});
+                        setTimeout(type, 60);
+                    } else { resolve(); }
+                }
+                type();
+            });
+        }
+
+        // 修改 addBubble 支持样式识别
+        function addBubble(role, content) {
+            const div = document.createElement('div');
+            div.className = `bubble ${role}`;
+            
+            if (content.includes('biaoqing/')) {
+                div.classList.add('bubble-img');
+                div.innerHTML = `<img src="${content}">`;
+            } 
+            else if (content.includes('📍')) {
+                div.classList.add('bubble-location');
+                const rawText = content.replace('📍 ', '');
+                const [title, addr] = rawText.split('|');
+               div.innerHTML = `
+    <div class="loc-info">
+        <div class="loc-title">${title || '未知地点'}</div>
+        <div class="loc-addr">${addr || '点击查看详情...'}</div>
+    </div>
+    <img src="pic/map1.png" class="loc-map"> 
+`;
+            } 
+            else {
+                div.innerText = content;
+            }
+            
+            chatDisplay.appendChild(div);
+            chatDisplay.scrollTop = chatDisplay.scrollHeight;
+            return div;
+        }
+
+        sendBtn.onclick = handleSend;
+        userInput.onkeydown = (e) => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } };
+
+        // 连点两次 Header 清空聊天记录
+        let lastClickTime = 0;
+        document.getElementById('headerTrigger').onclick = () => {
+            const now = Date.now();
+            if (now - lastClickTime < 300) {
+                if (confirm("确定要让 K. 遗忘这段秘密吗？")) {
+                    messageHistory = []; localStorage.removeItem('k_history');
+                    chatDisplay.innerHTML = '<div class="bubble ai">“记忆已归还虚无。”</div>';
+                }
+            }
+            lastClickTime = now;
+        };
+    </script>
+</body>
+</html>

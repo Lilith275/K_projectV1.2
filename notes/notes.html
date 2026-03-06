@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>K. - 生活手册</title>
+    <style>
+        :root {
+            /* 调色板：基于主页风格的白粉渐变 */
+            --k-bg-top: #ffffff;
+            --k-bg-bottom: #fdf2f4;
+            --k-accent: #ffb6c1;
+            --k-accent-soft: rgba(255, 182, 193, 0.3);
+            --k-glass: rgba(255, 255, 255, 0.85);
+            --k-text: #8a6d7a;
+            --k-text-light: #a38995;
+            --k-shadow: 0 10px 30px rgba(255, 182, 193, 0.15);
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            margin: 0; padding: env(safe-area-inset-top) 0 0 0;
+            background: linear-gradient(135deg, var(--k-bg-top) 0%, var(--k-bg-bottom) 100%);
+            background-attachment: fixed;
+            font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+            color: var(--k-text); height: 100vh; overflow: hidden;
+        }
+
+        /* 1. 主选单按钮升级 - 高端圆角与柔和投影 */
+        #main-menu {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 100vh; gap: 22px; animation: fadeIn 0.4s ease-out;
+        }
+        .menu-btn {
+            width: 220px; padding: 22px; 
+            background: var(--k-glass); 
+            border: 1px solid rgba(255, 182, 193, 0.2);
+            border-radius: 28px; text-align: center; 
+            color: var(--k-text); font-weight: 500; font-size: 16px;
+            letter-spacing: 4px; box-shadow: var(--k-shadow);
+            cursor: pointer; transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        .menu-btn:active { transform: scale(0.97); background: #ffffff; box-shadow: 0 4px 10px rgba(255, 182, 193, 0.1); }
+
+        /* 2. 顶部导航 */
+        .top-nav { 
+            display: none; align-items: center; padding: 15px 24px; 
+            gap: 15px; position: relative; z-index: 10;
+        }
+        .back-to-menu { font-size: 24px; cursor: pointer; color: var(--k-accent); font-weight: 300; }
+
+        .content-scroll { height: calc(100vh - 80px); overflow-y: auto; padding: 0 20px 120px; display: none; }
+        .page { display: none; animation: fadeIn 0.4s ease; }
+        .page.active { display: block; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* 内容卡片升级 */
+        .card { 
+            background: var(--k-glass); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); 
+            border-radius: 24px; padding: 20px; margin-bottom: 18px; 
+            border: 1px solid rgba(255, 255, 255, 0.6); 
+            box-shadow: var(--k-shadow); position: relative;
+        }
+        
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th { text-align: left; padding: 10px; border-bottom: 1.5px solid var(--k-accent-soft); color: var(--k-accent); font-weight: 600; font-size: 12px; text-transform: uppercase; }
+        td { padding: 14px 10px; border-bottom: 1px solid rgba(255, 182, 193, 0.05); }
+        .amount-out { color: #e5989b; font-weight: 500; } 
+        .amount-in { color: #95b8d1; font-weight: 500; }
+
+        /* 输入框适配主页风格 */
+        .k-input { 
+            width: 100%; background: rgba(255, 255, 255, 0.5); 
+            border: 1px solid rgba(255, 182, 193, 0.3); 
+            border-radius: 16px; padding: 14px; margin-bottom: 12px; 
+            color: var(--k-text); outline: none; font-family: inherit; 
+            transition: 0.3s;
+        }
+        .k-input:focus { background: #ffffff; border-color: var(--k-accent); box-shadow: 0 0 0 4px var(--k-accent-soft); }
+        
+        /* 3. 编辑页 - 全屏覆盖 */
+        #editorPage { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: linear-gradient(135deg, #ffffff 0%, #fff9fa 100%); 
+            z-index: 2000; display: none; flex-direction: column; 
+            padding: env(safe-area-inset-top) 24px 24px; 
+        }
+        .editor-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; margin-bottom: 15px; }
+        
+       /* 底部扁平长条功能键：退出/返回 */
+.inner-back-btn, .out-btn { 
+    position: fixed; 
+    bottom: calc(40px + env(safe-area-inset-bottom)); 
+    left: 50%;
+    transform: translateX(-50%); /* 居中显示，长条形居中更高端 */
+    width: 120px; /* 扁长宽度 */
+    height: 36px; /* 较矮的高度 */
+    background: rgba(255, 255, 255, 0.6); 
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 182, 193, 0.3); 
+    border-radius: 18px; /* 圆润长条 */
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    color: var(--k-text-light); /* 使用较淡的文字颜色 */
+    font-size: 12px; /* 缩小字体 */
+    letter-spacing: 2px; /* 增加字间距 */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03); 
+    cursor: pointer; 
+    z-index: 99;
+    transition: all 0.3s;
+}
+/* 当在模块内时，out-btn 需要显示为 flex */
+    .out-btn { display: none; } 
+    /* 编辑页内部返回键 */
+    .inner-back-btn { display: flex; }
+.inner-back-btn:active, .out-btn:active {
+    background: #fff;
+    transform: translateX(-50%) scale(0.95);
+}
+
+/* 修正返回按钮的内部文字，如果是长条，直接写“返回”比箭头更好看 */
+        /* 悬浮添加按钮 */
+        .fab { 
+            position: fixed; bottom: calc(40px + env(safe-area-inset-bottom)); right: 30px; 
+            width: 56px; height: 56px; background: var(--k-accent); 
+            border-radius: 50%; display: none; align-items: center; justify-content: center; 
+            color: white; font-size: 28px; font-weight: 300;
+            box-shadow: 0 10px 25px rgba(255, 182, 193, 0.5); z-index: 100;
+        }
+        
+        .lock-overlay { 
+            position: absolute; inset: 0; 
+            background: linear-gradient(135deg, #ffffff 0%, #fdf2f4 100%); 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 50; 
+        }
+
+        /* AI 点评框升级 */
+        #ai-comment-box {
+            margin-top: 20px; padding: 18px; 
+            background: #ffffff; border-radius: 20px; 
+            border-left: 4px solid var(--k-accent);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+        }
+    </style>
+</head>
+<body>
+    <div id="main-menu">
+        <div class="menu-btn" onclick="enterModule('note')">备忘</div>
+        <div class="menu-btn" onclick="enterModule('finance')">账本</div>
+        <div class="menu-btn" onclick="enterModule('diary')">日记</div>
+    </div>
+
+    <div class="top-nav" id="top-nav">
+        <div class="back-to-menu" onclick="backToMenu()">←</div>
+        <b id="nav-title" style="flex:1; text-align: center; margin-right: 30px; letter-spacing: 2px;">模块名</b>
+    </div>
+
+    <div class="content-scroll" id="content-scroll">
+        <div id="page-note" class="page"></div>
+        <div id="page-finance" class="page">
+            <div class="card">
+                <table>
+                    <thead><tr><th>日期</th><th>类别</th><th>备注</th><th>金额</th></tr></thead>
+                    <tbody id="finance-body"></tbody>
+                </table>
+            </div>
+        </div>
+        <div id="page-diary" class="page">
+            <div id="diary-lock" class="lock-overlay">
+                <span style="font-size: 44px; margin-bottom: 25px; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.05));"></span>
+                <input type="password" id="diary-pwd" class="k-input" style="width: 200px; text-align: center; letter-spacing: 4px;" placeholder="输入暗号">
+                <div style="display: flex; gap: 12px; margin-top: 10px;">
+                    <button style="padding:10px 20px; border-radius:18px; border:1px solid var(--k-accent); background:none; color:var(--k-text); font-size: 13px;" onclick="backToMenu()">返回</button>
+                    <button style="padding:10px 20px; border-radius:18px; background: var(--k-accent); color: white; border:none; font-size: 13px; font-weight: bold; box-shadow: 0 4px 12px rgba(255,182,193,0.4);" onclick="unlockDiary()">解除契约</button>
+                </div>
+            </div>
+            <div id="diary-main-content" style="display: none;">
+                <div style="text-align: right; margin-bottom: 12px;">
+                    <small style="color:var(--k-accent); cursor:pointer; opacity: 0.8;" onclick="changeDiaryPwd()">[修改暗号]</small>
+                </div>
+                <div id="diary-list-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="fab" id="main-fab" onclick="openEditor()">+</div>
+    <div class="out-btn" id="exit-module-btn" onclick="backToMenu()">退出</div>
+
+    <div id="editorPage">
+        <div class="editor-header">
+            <div style="width:40px"></div>
+            <b id="editorTitle">记录</b>
+            <div>
+                <button id="del-btn" style="background:none; border:none; color:#a38995; font-size: 13px; margin-right: 15px; display:none;" onclick="deleteData()">抹除</button>
+                <button style="background:var(--k-accent); border:none; color:white; padding:8px 20px; border-radius:14px; font-weight: bold; box-shadow: 0 4px 10px rgba(255,182,193,0.3);" onclick="saveData()">存入</button>
+            </div>
+        </div>
+
+        <div id="editor-text-group">
+            <input type="text" id="edit-title" class="k-input" placeholder="标题">
+            <textarea id="edit-content" style="width: 100%; height: 62vh; background: rgba(255,255,255,0.4); border:none; border-radius:20px; padding:20px; outline:none; color:var(--k-text); font-size: 15px; line-height: 1.6;" placeholder="在此刻画..."></textarea>
+        </div>
+
+        <div id="editor-finance-group" style="display: none;">
+            <input type="date" id="fin-date" class="k-input">
+            <select id="fin-category" class="k-input">
+                <option value="餐饮">餐饮☕️</option><option value="购物">购物🛍️</option><option value="娱乐">娱乐🎮</option><option value="交通">交通🚗</option><option value="其他">其他✨</option>
+            </select>
+            <input type="text" id="fin-desc" class="k-input" placeholder="备注内容">
+            <input type="number" id="fin-amount" class="k-input" placeholder="金额">
+            <div id="ai-comment-box" style="display:none;">
+                <div style="font-size:11px; color:var(--k-accent); margin-bottom:8px; font-weight: bold; letter-spacing: 1px;">Chrollo's Thought:</div>
+                <div id="ai-comment-text" style="font-size:14px; font-style:italic; line-height: 1.5;"></div>
+            </div>
+        </div>
+
+        <div class="inner-back-btn" onclick="closeEditor()">←</div>
+    </div>
+
+    <script>
+        /* 内部逻辑脚本与原版完全一致，此处略过冗余展示，请直接使用原逻辑代码 */
+        let db = {
+            note: JSON.parse(localStorage.getItem('k_notes') || '[]'),
+            finance: JSON.parse(localStorage.getItem('k_finance') || '[]'),
+            diary: JSON.parse(localStorage.getItem('k_diaries') || '[]')
+        };
+        let currentTab = 'note';
+        let editingIndex = null;
+
+        function enterModule(tab) {
+            currentTab = tab;
+            document.getElementById('main-menu').style.display = 'none';
+            document.getElementById('top-nav').style.display = 'flex';
+            document.getElementById('content-scroll').style.display = 'block';
+            const titles = { 'note': '备忘录', 'finance': '账本', 'diary': '日记' };
+            document.getElementById('nav-title').innerText = titles[tab];
+            if(tab === 'diary') {
+                document.getElementById('diary-lock').style.display = 'flex';
+                document.getElementById('diary-main-content').style.display = 'none';
+                document.getElementById('main-fab').style.display = 'none';
+                document.getElementById('exit-module-btn').style.display = 'none';
+            } else {
+                document.getElementById('main-fab').style.display = 'flex';
+                document.getElementById('exit-module-btn').style.display = 'flex';
+            }
+            render();
+        }
+
+        function backToMenu() {
+            document.getElementById('main-menu').style.display = 'flex';
+            document.getElementById('top-nav').style.display = 'none';
+            document.getElementById('content-scroll').style.display = 'none';
+            document.getElementById('main-fab').style.display = 'none';
+            document.getElementById('exit-module-btn').style.display = 'none';
+        }
+
+        function render() {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(`page-${currentTab}`).classList.add('active');
+            if (currentTab === 'note') {
+                document.getElementById('page-note').innerHTML = db.note.map((n, i) => `
+                    <div class="card" onclick="openEditor(${i})">
+                        <b style="color:var(--k-accent); font-size: 16px;">${n.title}</b>
+                        <div style="font-size:13px; margin-top:8px; color:var(--k-text-light); line-height:1.4;">${(n.content||"").substring(0,30)}...</div>
+                    </div>`).join('');
+            } else if (currentTab === 'finance') {
+                document.getElementById('finance-body').innerHTML = db.finance.map((f, i) => `
+                    <tr onclick="openEditor(${i})">
+                        <td style="color:var(--k-text-light)">${(f.date || "").substring(5)}</td><td>${f.category}</td><td>${f.desc}</td>
+                        <td class="${f.amount >= 0 ? 'amount-in' : 'amount-out'}">${f.amount}</td>
+                    </tr>`).join('');
+            } else if (currentTab === 'diary') {
+                document.getElementById('diary-list-container').innerHTML = db.diary.map((d, i) => `
+                    <div class="card" onclick="openEditor(${i})">
+                        <b style="color:var(--k-accent); font-size: 16px;">${d.title || d.time}</b>
+                        <div style="font-size:13px; margin-top:8px; color:var(--k-text-light); line-height:1.4;">${(d.content||"").substring(0,30)}...</div>
+                    </div>`).join('');
+            }
+        }
+
+        function openEditor(index = null) {
+            editingIndex = index;
+            document.getElementById('editorPage').style.display = 'flex';
+            document.getElementById('del-btn').style.display = (index !== null) ? 'inline' : 'none';
+            const isFin = currentTab === 'finance';
+            document.getElementById('editor-text-group').style.display = isFin ? 'none' : 'block';
+            document.getElementById('editor-finance-group').style.display = isFin ? 'block' : 'none';
+            if (index !== null) {
+                const data = db[currentTab][index];
+                if (isFin) {
+                    document.getElementById('fin-date').value = data.date || "";
+                    document.getElementById('fin-category').value = data.category || "餐饮";
+                    document.getElementById('fin-desc').value = data.desc || "";
+                    document.getElementById('fin-amount').value = data.amount || "";
+                    if (data.aiComment) {
+                        document.getElementById('ai-comment-box').style.display = 'block';
+                        document.getElementById('ai-comment-text').innerText = data.aiComment;
+                    } else { document.getElementById('ai-comment-box').style.display = 'none'; }
+                } else {
+                    document.getElementById('edit-title').value = data.title || "";
+                    document.getElementById('edit-content').value = data.content || "";
+                }
+            } else {
+                document.getElementById('ai-comment-box').style.display = 'none';
+                document.getElementById('edit-title').value = '';
+                document.getElementById('edit-content').value = '';
+                document.getElementById('fin-desc').value = '';
+                document.getElementById('fin-amount').value = '';
+                document.getElementById('fin-date').value = new Date().toISOString().split('T')[0];
+            }
+        }
+
+        function saveData() {
+            let item = {};
+            if (currentTab === 'finance') {
+                item = { date: document.getElementById('fin-date').value, category: document.getElementById('fin-category').value, desc: document.getElementById('fin-desc').value, amount: parseFloat(document.getElementById('fin-amount').value || 0), aiComment: "" };
+            } else {
+                item = { title: document.getElementById('edit-title').value || '无标题', content: document.getElementById('edit-content').value, time: new Date().toLocaleString() };
+            }
+            if (editingIndex !== null) db[currentTab][editingIndex] = { ...db[currentTab][editingIndex], ...item };
+            else db[currentTab].push(item);
+            const storageKey = { 'note': 'k_notes', 'finance': 'k_finance', 'diary': 'k_diaries' }[currentTab];
+            localStorage.setItem(storageKey, JSON.stringify(db[currentTab]));
+            if (currentTab === 'finance' && editingIndex === null) {
+                document.getElementById('ai-comment-box').style.display = 'block';
+                document.getElementById('ai-comment-text').innerText = "库洛洛正在审视...";
+                triggerAiComment(db.finance.length - 1);
+            } else { closeEditor(); }
+            render();
+        }
+
+        async function triggerAiComment(index) {
+            const base = localStorage.getItem('k_base'), key = localStorage.getItem('k_key'), model = localStorage.getItem('k_model') || "gpt-3.5-turbo";
+            const worldSetting = localStorage.getItem('k_world_Chrollo_setting') || "你是真实存在的人，库洛洛鲁西鲁，作为朋友给她的账单点评，不准超过30个字。";
+            const commentText = document.getElementById('ai-comment-text');
+            if (!base || !key) return;
+            try {
+                const item = db.finance[index];
+                const userPrompt = `我花了${item.amount}元买${item.desc || item.category}，作为库洛洛，像网友一样吐槽或点评一句，30字以内。`;
+                const cleanBase = base.replace(/\/$/, '');
+                const res = await fetch(`${cleanBase}/v1/chat/completions`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+                    body: JSON.stringify({ model: model, messages: [{ role: "system", content: worldSetting }, { role: "user", content: userPrompt }] })
+                });
+                const data = await res.json();
+                let reply = data.choices?.[0]?.message?.content;
+                if (reply) {
+                    db.finance[index].aiComment = reply.trim();
+                    localStorage.setItem('k_finance', JSON.stringify(db.finance));
+                    if (commentText) commentText.innerText = reply.trim();
+                    render();
+                }
+            } catch (e) { if (commentText) commentText.innerText = "信号不太好。"; }
+        }
+
+        function deleteData() {
+            if (editingIndex !== null && confirm("确定删除这条记忆吗？")) {
+                const storageKey = { 'note': 'k_notes', 'finance': 'k_finance', 'diary': 'k_diaries' }[currentTab];
+                db[currentTab].splice(editingIndex, 1);
+                localStorage.setItem(storageKey, JSON.stringify(db[currentTab]));
+                closeEditor(); render();
+            }
+        }
+
+        function closeEditor() { document.getElementById('editorPage').style.display = 'none'; }
+        
+        function unlockDiary() {
+            const savedPwd = localStorage.getItem('k_diary_pwd') || "1111";
+            if (document.getElementById('diary-pwd').value === savedPwd) {
+                document.getElementById('diary-lock').style.display = 'none';
+                document.getElementById('diary-main-content').style.display = 'block';
+                document.getElementById('main-fab').style.display = 'flex';
+                document.getElementById('exit-module-btn').style.display = 'flex';
+                render();
+            } else { alert("暗号错误。"); }
+        }
+
+        function changeDiaryPwd() {
+            const newPwd = prompt("设置新的暗号：");
+            if (newPwd) {
+                localStorage.setItem('k_diary_pwd', newPwd);
+                alert("暗号已更新。");
+            }
+        }
+    </script>
+</body>
+</html>
