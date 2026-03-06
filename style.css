@@ -668,7 +668,7 @@ margin-bottom: calc(max(15px, var(--safe-bottom)) + 5px);
 
 /* 签名：增加溢出隐藏，防止文字过长撑乱布局 */
 .profile-signature {
-    font-size: 12px;
+    font-size: 8px;
     color: rgba(255, 159, 175, 0.938);
     margin-top: 10px;
     font-style: italic;
